@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>GTA 日請假大作戰</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{height:100%;background:#2b2140;font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;color:#222;overflow:hidden}
+#app{position:relative;max-width:520px;height:100dvh;margin:0 auto;display:flex;flex-direction:column;background:#f6e7c8}
+/* HUD */
+#hud{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#3d2f5a;color:#fff;font-weight:800;font-size:15px;z-index:5}
+#score{font-size:20px;color:#ffd84d}
+#hearts{font-size:20px;letter-spacing:2px}
+#status{font-size:12px;padding:3px 8px;border-radius:10px;background:#ff5c7a}
+#status.safe{background:#2fae66}
+/* Office */
+#office{position:relative;flex:1;overflow:hidden}
+.wall{position:absolute;left:0;right:0;top:0;height:62%;background:repeating-linear-gradient(90deg,#f3dca8 0 38px,#efd49a 38px 40px)}
+.floor{position:absolute;left:0;right:0;bottom:0;height:38%;background:repeating-linear-gradient(90deg,#b98a5c 0 60px,#a97b4f 60px 62px);border-top:6px solid #8c5f39}
+.clock{position:absolute;left:7%;top:7%;width:52px;height:52px;border-radius:50%;background:#fff;border:5px solid #3d2f5a;box-shadow:0 3px 0 rgba(0,0,0,.15)}
+.clock i{position:absolute;left:50%;bottom:50%;width:3px;background:#3d2f5a;transform-origin:bottom center;border-radius:2px}
+.clock .h{height:13px;margin-left:-1.5px}
+.clock .m{height:18px;margin-left:-1.5px;width:2px}
+.poster{position:absolute;left:30%;top:6%;padding:6px 10px;background:#fff;border:3px solid #3d2f5a;font-size:12px;font-weight:900;transform:rotate(-3deg);box-shadow:0 3px 0 rgba(0,0,0,.15)}
+.led{position:absolute;left:24%;width:44%;top:4%;background:#1a1a1a;border:4px solid #555;border-radius:8px;padding:5px 4px;text-align:center;box-shadow:0 3px 0 rgba(0,0,0,.25),inset 0 0 10px #000;z-index:1}
+.led .lab{font-size:10px;font-weight:900;color:#ffb3b3;letter-spacing:1px}
+.led .dig{font-family:"Courier New",monospace;font-weight:900;font-size:clamp(13px,4.2vw,18px);color:#ff3b3b;text-shadow:0 0 6px #ff0000,0 0 12px #ff3b3b;white-space:nowrap}
+.blink{animation:blink .8s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+.cd{background:#1a1a1a;border-radius:12px;padding:10px 6px;margin:10px 0;border:3px solid #555}
+.cd .lab{font-size:12px;font-weight:900;color:#ffb3b3}
+.cd .units{display:flex;justify-content:center;gap:6px;margin-top:4px}
+.cd .u{display:flex;flex-direction:column;align-items:center;min-width:52px}
+.cd .u b{font-family:"Courier New",monospace;font-size:28px;color:#ff3b3b;text-shadow:0 0 8px #ff0000;line-height:1.1}
+.cd .u small{font-size:11px;color:#aaa;font-weight:700}
+.sour{font-size:14px;font-weight:800;color:#c0392b;margin-top:4px}
+.plant{position:absolute;left:3%;bottom:30%;font-size:44px;z-index:2}
+/* Door */
+#door{position:absolute;right:5%;width:25%;bottom:38%;height:46%;background:#3a2a1c;border:6px solid #6b4a2e;border-bottom:none;border-radius:6px 6px 0 0;overflow:hidden}
+#door .inside{position:absolute;inset:0;background:linear-gradient(#d9d2c2,#bfb7a5)}
+#boss{position:absolute;left:5%;width:90%;bottom:0;transform:translateY(105%);transition:transform .25s ease-out}
+#door.open #boss{transform:translateY(8%)}
+#panel{position:absolute;inset:0;background:#9b6b42;transform-origin:right center;transition:transform .25s;border-left:3px solid #7a5230}
+#door.open #panel{transform:perspective(300px) rotateY(-80deg)}
+#panel .glass{position:absolute;left:15%;right:15%;top:10%;height:38%;background:#cfe8f0;border:3px solid #7a5230;overflow:hidden}
+#panel .knob{position:absolute;left:10%;top:55%;width:10px;height:10px;border-radius:50%;background:#ffd84d}
+#shadow{position:absolute;left:50%;bottom:-10%;width:80%;height:110%;transform:translateX(-50%);opacity:0;
+ background:radial-gradient(circle at 50% 30%,#222 0 22%,transparent 23%),radial-gradient(ellipse at 50% 100%,#222 0 45%,transparent 46%);filter:blur(2px)}
+#doorSign{position:absolute;right:6%;bottom:85%;font-size:11px;font-weight:900;color:#3d2f5a;background:#fff;padding:2px 6px;border:2px solid #3d2f5a;border-radius:4px}
+#steps{position:absolute;right:4%;bottom:28%;font-size:16px;font-weight:900;color:#c0392b;opacity:0;transition:opacity .15s;text-shadow:0 2px 0 #fff;z-index:4;white-space:nowrap}
+/* Desk & monitor */
+.desk{position:absolute;left:-2%;width:78%;bottom:0;height:31%;background:#8c5f39;border-top:12px solid #a8754a;border-radius:6px 6px 0 0;z-index:2}
+#monitor{position:absolute;left:5%;width:64%;bottom:31%;aspect-ratio:4/3;background:#2a2a35;border-radius:10px;padding:7px;z-index:3;box-shadow:0 4px 0 rgba(0,0,0,.25);cursor:pointer}
+#monitor:after{content:"";position:absolute;left:42%;width:16%;top:100%;height:10px;background:#2a2a35}
+.screen{position:absolute;inset:7px;border-radius:5px;overflow:hidden}
+/* GTA screen */
+#gameScr{background:linear-gradient(#ff9a6b,#ffcf7a 55%)}
+.city{position:absolute;left:0;right:0;bottom:30%;height:45%;background:
+ linear-gradient(transparent 0 0),
+ repeating-linear-gradient(90deg,#5b3f78 0 26px,transparent 26px 34px,#7a4f8f 34px 52px,transparent 52px 60px,#4a3366 60px 90px,transparent 90px 96px);
+ background-size:200px 100%;animation:scroll 2s linear infinite;
+ -webkit-mask:linear-gradient(transparent 0 0);}
+.city2{position:absolute;left:0;right:0;bottom:30%;height:30%;background:repeating-linear-gradient(90deg,#3a2650 0 40px,transparent 40px 50px,#2e1f42 50px 70px,transparent 70px 85px);background-size:170px 100%;animation:scroll 1.2s linear infinite}
+.road{position:absolute;left:0;right:0;bottom:0;height:30%;background:#444}
+.road:after{content:"";position:absolute;left:0;right:0;top:45%;height:4px;background:repeating-linear-gradient(90deg,#ffd84d 0 20px,transparent 20px 40px);background-size:80px 4px;animation:scroll .4s linear infinite}
+@keyframes scroll{from{background-position-x:0}to{background-position-x:-200px}}
+.car{position:absolute;bottom:9%;font-size:clamp(22px,7vw,34px);transform:scaleX(-1);animation:bob .3s ease-in-out infinite alternate}
+#car1{left:52%}
+#car2{left:12%;animation-delay:.15s}
+@keyframes bob{from{margin-bottom:0}to{margin-bottom:3px}}
+.gtaTop{position:absolute;left:6px;right:6px;top:5px;display:flex;justify-content:space-between;font-weight:900;font-size:11px;color:#fff;text-shadow:1px 1px 0 #000}
+#stars{color:#ffd84d;letter-spacing:1px}
+#mission{position:absolute;left:0;right:0;top:24%;text-align:center;font-weight:900;font-size:12px;color:#fff;text-shadow:1px 1px 0 #000,0 0 6px #000}
+/* Excel screen */
+#excelScr{background:#fff;display:none;font-size:10px}
+.xlBar{background:#1f7a46;color:#fff;font-weight:700;padding:3px 6px}
+.xlF{border-bottom:1px solid #ccc;padding:2px 6px;color:#333;font-family:monospace}
+.xlGrid{display:grid;grid-template-columns:16px repeat(4,1fr);font-family:monospace}
+.xlGrid div{border-right:1px solid #ddd;border-bottom:1px solid #ddd;padding:1px 3px;white-space:nowrap;overflow:hidden}
+.xlGrid .hd{background:#eee;color:#555;text-align:center}
+#monitor.excel #gameScr{display:none}
+#monitor.excel #excelScr{display:block}
+/* Player */
+#player{position:absolute;left:24%;width:32%;bottom:-4%;z-index:4}
+/* Button */
+#ctrl{padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:#3d2f5a}
+#toggle{width:100%;padding:16px;font-size:20px;font-weight:900;border:none;border-radius:16px;color:#fff;background:#1f9d57;box-shadow:0 6px 0 #146b3b;cursor:pointer;font-family:inherit}
+#toggle.toGame{background:#ff5c7a;box-shadow:0 6px 0 #c23a55}
+#toggle:active{transform:translateY(4px);box-shadow:0 2px 0 #146b3b}
+.hint{text-align:center;color:#cbbbe8;font-size:11px;margin-top:6px}
+/* Floaters */
+.float{position:absolute;left:50%;top:30%;transform:translateX(-50%);font-weight:900;font-size:22px;color:#fff;-webkit-text-stroke:1px #3d2f5a;text-shadow:0 3px 0 #3d2f5a;pointer-events:none;z-index:9;white-space:nowrap;animation:up 1.1s ease-out forwards}
+@keyframes up{from{opacity:1;margin-top:0}to{opacity:0;margin-top:-60px}}
+/* Overlay */
+.ov{position:absolute;inset:0;background:rgba(30,20,50,.82);display:none;align-items:center;justify-content:center;z-index:20;padding:20px}
+.ov.show{display:flex}
+.card{background:#fff;border-radius:20px;padding:22px 20px;text-align:center;width:100%;max-width:380px;border:5px solid #3d2f5a;box-shadow:0 8px 0 rgba(0,0,0,.3);animation:pop .25s ease-out}
+@keyframes pop{from{transform:scale(.7)}to{transform:scale(1)}}
+.card h1{font-size:28px;color:#3d2f5a;line-height:1.2}
+.card h1 span{color:#ff5c7a}
+.card p{font-size:14px;line-height:1.6;margin:10px 0;color:#444}
+.card .btn{display:block;width:100%;margin-top:12px;padding:14px;font-size:18px;font-weight:900;border:none;border-radius:14px;background:#ff5c7a;color:#fff;box-shadow:0 5px 0 #c23a55;cursor:pointer;font-family:inherit}
+.card .btn:active{transform:translateY(3px);box-shadow:0 2px 0 #c23a55}
+.bubble{position:relative;background:#fff6d6;border:3px solid #3d2f5a;border-radius:16px;padding:12px;font-size:17px;font-weight:800;line-height:1.5;color:#3d2f5a;margin-bottom:10px}
+.bubble:after{content:"";position:absolute;left:50%;bottom:-14px;margin-left:-10px;border:10px solid transparent;border-top-color:#3d2f5a;border-bottom:0}
+.bigBoss{width:130px;margin:0 auto -6px;display:block}
+.rules{text-align:left;font-size:14px;background:#f4eefc;border-radius:12px;padding:10px 12px;margin:10px 0;line-height:1.7}
+.big{font-size:40px;font-weight:900;color:#ff5c7a}
+.rank{font-size:18px;font-weight:900;color:#3d2f5a}
+body.paused .city,body.paused .city2,body.paused .road:after,body.paused .car{animation-play-state:paused}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+</style>
+</head>
+<body class="paused">
+<div id="app">
+  <div id="hud">
+    <div>偷玩分數 <span id="score">0</span></div>
+    <div id="status">🎮 偷玩中</div>
+    <div id="hearts">❤️❤️❤️</div>
+  </div>
+
+  <div id="office">
+    <div class="wall"></div>
+    <div class="floor"></div>
+    <div class="clock"><i class="h" id="hh"></i><i class="m" id="mh"></i></div>
+    <div class="led"><div class="lab" id="ledLab">GTA VI 上市倒數</div><div class="dig" id="ledDig">--天 --:--:--</div></div>
+    <div class="plant">🪴</div>
+
+    <div id="doorSign">總經理室</div>
+    <div id="door">
+      <div class="inside"></div>
+      <div id="boss"></div>
+      <div id="panel"><div class="glass"><div id="shadow"></div></div><div class="knob"></div></div>
+    </div>
+    <div id="steps">咚…咚…咚…</div>
+
+    <div class="desk"></div>
+    <div id="monitor">
+      <div class="screen" id="gameScr">
+        <div class="city"></div><div class="city2"></div><div class="road"></div>
+        <div class="car" id="car2">🚓</div>
+        <div class="car" id="car1">🏎️</div>
+        <div class="gtaTop"><span>GTA VI</span><span id="stars">★☆☆☆☆</span></div>
+        <div id="mission">任務 1：偷一台跑車</div>
+      </div>
+      <div class="screen" id="excelScr">
+        <div class="xlBar">📊 第四季業績報表.xlsx</div>
+        <div class="xlF">fx =SUM(B2:B9)</div>
+        <div class="xlGrid" id="xlGrid"></div>
+      </div>
+    </div>
+
+    <svg id="player" viewBox="0 0 120 110">
+      <path d="M10 110 Q12 70 60 66 Q108 70 110 110Z" fill="#4a7bd1"/>
+      <path d="M48 66 L60 80 L72 66Z" fill="#fff"/>
+      <rect x="50" y="58" width="20" height="12" fill="#e8b88a"/>
+      <ellipse cx="29" cy="44" rx="5" ry="8" fill="#e8b88a"/>
+      <ellipse cx="91" cy="44" rx="5" ry="8" fill="#e8b88a"/>
+      <circle cx="60" cy="40" r="30" fill="#2b2b2b"/>
+      <path d="M60 22 q4 -4 2 -10" stroke="#2b2b2b" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M44 30 Q60 22 76 30" stroke="#444" stroke-width="2" fill="none"/>
+      <path d="M100 18 l6 -6 M104 26 l8 -2 M96 12 l2 -8" stroke="#ff5c7a" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+  <div id="ctrl">
+    <button id="toggle">🛡️ 切到 Excel</button>
+    <div class="hint">電腦可以按「空白鍵」切換・點螢幕也可以</div>
+  </div>
+
+  <!-- Start -->
+  <div class="ov show" id="ovStart">
+    <div class="card">
+      <h1>GTA 日<br><span>請假大作戰</span></h1>
+      <p>11/19 GTA VI 發售，你的假卻被老闆打槍了…<br>沒關係，<b>上班偷玩</b>就好！</p>
+      <div class="cd"><div class="lab" id="cdLab1">⏳ GTA VI 上市倒數</div><div class="units"><div class="u"><b id="cdD1">00</b><small id="cdDL1">天</small></div><div class="u"><b id="cdH1">00</b><small>時</small></div><div class="u"><b id="cdM1">00</b><small>分</small></div><div class="u"><b id="cdS1">00</b><small>秒</small></div></div></div>
+      <div class="rules">
+        🎮 畫面在遊戲上就會累積分數<br>
+        👂 聽到腳步聲、門上出現影子 → 快切 Excel！<br>
+        😏 老闆有時會<b>假走過</b>騙你<br>
+        💥 被抓 3 次就 Game Over
+      </div>
+      <button class="btn" id="startBtn">開始上班 💼</button>
+    </div>
+  </div>
+
+  <!-- Caught -->
+  <div class="ov" id="ovCaught">
+    <div class="card">
+      <div class="bubble" id="line"></div>
+      <div id="bigBoss1" class="bigBoss"></div>
+      <p id="caughtInfo"></p>
+      <button class="btn" id="sorryBtn">對不起老闆 🙇</button>
+    </div>
+  </div>
+
+  <!-- Game over -->
+  <div class="ov" id="ovOver">
+    <div class="card">
+      <h1>💼 你被叫進<span>總經理室</span>了</h1>
+      <div class="bubble" id="overLine"></div>
+      <p>最終偷玩分數</p>
+      <div class="big" id="finalScore">0</div>
+      <div class="rank" id="rank"></div>
+      <p id="best"></p>
+      <div class="cd"><div class="lab" id="cdLab2">⏳ GTA VI 上市倒數</div><div class="units"><div class="u"><b id="cdD2">00</b><small id="cdDL2">天</small></div><div class="u"><b id="cdH2">00</b><small>時</small></div><div class="u"><b id="cdM2">00</b><small>分</small></div><div class="u"><b id="cdS2">00</b><small>秒</small></div></div></div>
+      <div class="sour" id="sour"></div>
+      <button class="btn" id="againBtn">明天再來上班 🔁</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BOSS_SVG = `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 150 Q10 92 50 88 Q90 92 92 150Z" fill="#fff"/>
+<path d="M8 150 Q10 92 34 89 L40 150Z M92 150 Q90 92 66 89 L60 150Z" fill="#33334d"/>
+<path d="M44 88 L56 88 L54 96 L60 140 L50 150 L40 140 L46 96Z" fill="#e53950"/>
+<circle cx="50" cy="52" r="32" fill="#f2c9a0"/>
+<ellipse cx="18" cy="56" rx="5" ry="8" fill="#e8b88a"/><ellipse cx="82" cy="56" rx="5" ry="8" fill="#e8b88a"/>
+<path d="M22 44 Q24 30 34 26 M30 40 Q36 22 52 20 M46 22 Q66 18 74 34" stroke="#333" stroke-width="3" fill="none" stroke-linecap="round"/>
+<path d="M27 42 L44 47 M73 42 L56 47" stroke="#333" stroke-width="4" stroke-linecap="round"/>
+<circle cx="37" cy="54" r="9" fill="#fff" stroke="#333" stroke-width="3"/><circle cx="63" cy="54" r="9" fill="#fff" stroke="#333" stroke-width="3"/>
+<line x1="46" y1="54" x2="54" y2="54" stroke="#333" stroke-width="3"/>
+<circle cx="39" cy="55" r="3.5" fill="#222"/><circle cx="61" cy="55" r="3.5" fill="#222"/>
+<path d="M36 70 Q50 63 64 70 Q57 74 50 71 Q43 74 36 70Z" fill="#333"/>
+<path d="M42 78 Q50 74 58 78" stroke="#a0522d" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>`;
+document.getElementById('boss').innerHTML = BOSS_SVG;
+document.getElementById('bigBoss1').innerHTML = BOSS_SVG;
+
+const LINES = [
+  "你這個 Excel 怎麼會有警車在追？🚓",
+  "上班時間搶銀行？\n那你的年終我先幫你搶走了。",
+  "11/19 請不到假，\n所以你決定在公司過是不是？",
+  "這份報表的 KPI\n是算通緝幾顆星喔？",
+  "我也很想玩，\n但我是老闆，你不是。",
+  "績效考核那一欄，\n我幫你填「很會開車」。",
+  "下班留下來，\n我們聊聊你的「人生規劃」。",
+  "你的鍵盤 WASD\n怎麼磨得特別亮？",
+  "要不要我幫你請假？\n永久的那種。",
+  "公司網路這麼慢，\n原來是你在下載 GTA！",
+  "這台車開得不錯嘛，\n那來幫我送公文好了。",
+  "再被我抓到，\n你就去當遊戲裡的 NPC。"
+];
+const OVER_LINES = [
+  "明天開始不用來了，\n回家慢慢玩吧。",
+  "恭喜你，\n你現在有一整年的假可以玩 GTA 了。",
+  "你的辭職信我幫你寫好了，\n連署名都簽了。"
+];
+const MISSIONS = ["任務 1：偷一台跑車","任務 2：甩掉警察","任務 3：搶便利商店","任務 4：飛車追逐",
+  "任務 5：搶銀行金庫","任務 6：開直升機逃亡","任務 7：買下整棟大樓","最終任務：統治整座城市"];
+
+const $ = id => document.getElementById(id);
+const monitor=$('monitor'), toggleBtn=$('toggle'), door=$('door'), shadow=$('shadow'), steps=$('steps');
+
+// Excel grid
+(function(){
+  const g=$('xlGrid'); const cols=['','A','B','C','D'];
+  cols.forEach(c=>g.insertAdjacentHTML('beforeend',`<div class="hd">${c}</div>`));
+  const names=['月份','營收','成本','毛利'];
+  for(let r=1;r<=9;r++){
+    g.insertAdjacentHTML('beforeend',`<div class="hd">${r}</div>`);
+    for(let c=0;c<4;c++){
+      let v = r===1? names[c] : (c===0? (r+2)+'月' : (Math.floor(Math.random()*9000)+1000).toLocaleString());
+      g.insertAdjacentHTML('beforeend',`<div>${v}</div>`);
+    }
+  }
+})();
+
+// Countdown to GTA VI: 2026-11-19 00:00 Taiwan time
+const TARGET = new Date('2026-11-19T00:00:00+08:00').getTime();
+const pad=n=>String(n).padStart(2,'0');
+function cdParts(){
+  let ms=TARGET-Date.now(); const pre=ms>0; ms=Math.abs(ms);
+  const sec=Math.floor(ms/1000);
+  return {pre, d:Math.floor(sec/86400), h:Math.floor(sec%86400/3600), m:Math.floor(sec%3600/60), s:sec%60};
+}
+function tickCountdown(){
+  const c=cdParts();
+  const lab=$('ledLab'), dig=$('ledDig');
+  if(c.pre){
+    lab.textContent='GTA VI 上市倒數'; lab.classList.remove('blink');
+    dig.textContent=`${pad(c.d)}天 ${pad(c.h)}:${pad(c.m)}:${pad(c.s)}`;
+  } else {
+    lab.textContent='🎉 GTA VI 已上市！'; lab.classList.add('blink');
+    dig.textContent=`已上市 ${c.d}天 ${pad(c.h)}:${pad(c.m)}:${pad(c.s)}`;
+  }
+  [1,2].forEach(i=>{
+    const l=$('cdLab'+i);
+    l.textContent = c.pre? '⏳ GTA VI 上市倒數' : '🎉 GTA VI 已上市！已經過了';
+    l.classList.toggle('blink',!c.pre);
+    $('cdD'+i).textContent=pad(c.d); $('cdH'+i).textContent=pad(c.h);
+    $('cdM'+i).textContent=pad(c.m); $('cdS'+i).textContent=pad(c.s);
+  });
+}
+tickCountdown(); setInterval(tickCountdown,250);
+function sourLine(){
+  const c=cdParts();
+  if(c.pre){
+    return c.d>0 ? `離 GTA VI 上市還有 ${c.d} 天，你已經先失業了。`
+                 : `GTA VI 再 ${c.h} 小時就上市，你已經先失業了。`;
+  }
+  return c.d>0 ? `GTA VI 都上市 ${c.d} 天了，恭喜你終於有空玩（因為失業）。`
+               : `GTA VI 今天上市，恭喜你終於有空玩（因為失業）。`;
+}
+
+// Audio
+let ac=null;
+function audio(){ try{ if(!ac) ac=new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==='suspended') ac.resume(); }catch(e){} }
+function tone(f,d,type='sine',vol=.2,slide=0){
+  if(!ac) return;
+  try{
+    const o=ac.createOscillator(), g=ac.createGain(), t=ac.currentTime;
+    o.type=type; o.frequency.setValueAtTime(f,t); if(slide) o.frequency.exponentialRampToValueAtTime(slide,t+d);
+    g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+d);
+    o.connect(g).connect(ac.destination); o.start(t); o.stop(t+d);
+  }catch(e){}
+}
+const sfx={
+  step:()=>tone(90,.18,'sine',.5,50),
+  click:()=>tone(900,.04,'square',.08),
+  caught:()=>{tone(400,.5,'sawtooth',.2,90); setTimeout(()=>tone(300,.5,'sawtooth',.15,70),150)},
+  phew:()=>{tone(660,.1,'triangle',.2); setTimeout(()=>tone(990,.15,'triangle',.2),100)},
+  fake:()=>{tone(500,.12,'triangle',.15,700)}
+};
+
+// State
+let running=false, paused=true, onExcel=false, score=0, lives=3, t=0, last=0;
+let boss={state:'away',timer:3,fake:false,stepT:0};
+let best=0; try{best=+localStorage.getItem('gtaday_best')||0}catch(e){}
+
+const rand=(a,b)=>a+Math.random()*(b-a);
+const diff=()=>Math.min(1,t/120);
+
+function setExcel(v){
+  if(!running||paused) return;
+  onExcel=v; sfx.click();
+  monitor.classList.toggle('excel',v);
+  toggleBtn.classList.toggle('toGame',v);
+  toggleBtn.textContent = v? '🎮 繼續偷玩' : '🛡️ 切到 Excel';
+  $('status').textContent = v? '📊 認真工作中' : '🎮 偷玩中';
+  $('status').classList.toggle('safe',v);
+  if(v && boss.state==='warning' && !boss.fake && boss.timer<0.35){
+    score+=100; floatText('好險！+100 😰'); sfx.phew();
+  }
+}
+function toggle(){ setExcel(!onExcel); }
+
+function floatText(s){
+  const d=document.createElement('div'); d.className='float'; d.textContent=s;
+  $('office').appendChild(d); setTimeout(()=>d.remove(),1100);
+}
+
+function resetBoss(delay){
+  boss.state='away'; boss.timer=delay; boss.fake=false;
+  door.classList.remove('open'); shadow.style.opacity=0; steps.style.opacity=0;
+}
+
+function update(dt){
+  t+=dt;
+  if(!onExcel){
+    score += dt*(10 + t*0.5);
+    const mi=Math.min(MISSIONS.length-1,Math.floor(score/400));
+    $('mission').textContent=MISSIONS[mi];
+    const s=Math.min(5,1+Math.floor(score/500));
+    $('stars').textContent='★'.repeat(s)+'☆'.repeat(5-s);
+  }
+  $('score').textContent=Math.floor(score);
+  // clock (9:00 -> 18:00 over ~3 min, loops)
+  const mins = (t*3)%540; const hr=9+mins/60;
+  $('hh').style.transform=`rotate(${(hr%12)*30}deg)`; $('mh').style.transform=`rotate(${(mins%60)*6}deg)`;
+
+  const d=diff();
+  boss.timer-=dt;
+  if(boss.state==='away'){
+    if(boss.timer<=0){
+      boss.state='warning';
+      boss.warnTotal=Math.max(.55,1.4-0.8*d);
+      boss.timer=boss.warnTotal;
+      boss.fake=Math.random()<(0.15+0.25*d);
+      boss.stepT=0;
+      steps.style.opacity=1;
+    }
+  } else if(boss.state==='warning'){
+    boss.stepT-=dt;
+    if(boss.stepT<=0){ sfx.step(); boss.stepT=Math.max(.18,boss.warnTotal/4); }
+    shadow.style.opacity=Math.min(1,1-boss.timer/boss.warnTotal+.15);
+    if(boss.timer<=0){
+      if(boss.fake){
+        floatText('老闆…走過去了？😏'); sfx.fake();
+        resetBoss(rand(1.5,3.5)*(1-0.4*d));
+      } else {
+        boss.state='watching'; boss.timer=rand(1.5,3);
+        door.classList.add('open'); steps.style.opacity=0; shadow.style.opacity=0;
+      }
+    }
+  } else if(boss.state==='watching'){
+    if(!onExcel){ caught(); return; }
+    if(boss.timer<=0){
+      floatText('老闆：嗯，很認真 👍'); score+=30;
+      resetBoss(rand(2.5,5.5)*(1-0.5*d));
+    }
+  }
+}
+
+function loop(ts){
+  const dt=Math.min(.05,(ts-last)/1000||0); last=ts;
+  if(running && !paused) update(dt);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+function caught(){
+  paused=true; document.body.classList.add('paused');
+  lives--; sfx.caught(); try{navigator.vibrate&&navigator.vibrate(300)}catch(e){}
+  $('app').classList.add('shake'); setTimeout(()=>$('app').classList.remove('shake'),400);
+  $('hearts').textContent='❤️'.repeat(lives)+'🖤'.repeat(3-lives);
+  setTimeout(()=>{
+    if(lives<=0){ gameOver(); return; }
+    $('line').textContent=LINES[Math.floor(Math.random()*LINES.length)];
+    $('caughtInfo').textContent = lives===1? '⚠️ 只剩最後一次機會了！' : `還剩 ${lives} 次機會`;
+    $('ovCaught').classList.add('show');
+  },500);
+}
+
+function gameOver(){
+  running=false;
+  const s=Math.floor(score);
+  if(s>best){ best=s; try{localStorage.setItem('gtaday_best',best)}catch(e){} }
+  $('overLine').textContent=OVER_LINES[Math.floor(Math.random()*OVER_LINES.length)];
+  $('finalScore').textContent=s;
+  $('rank').textContent = s<300?'🐣 實習生：摸魚手法太生疏' : s<800?'🙂 小職員：偶爾偷懶一下' :
+    s<1500?'😎 資深員工：老鳥的從容' : s<3000?'🐟 摸魚大師：老闆眼皮底下也敢' : '👑 傳說中的薪水小偷';
+  $('best').textContent=`個人最高紀錄：${best}`;
+  $('sour').textContent='💀 '+sourLine();
+  $('ovOver').classList.add('show');
+}
+
+function start(){
+  audio();
+  score=0; lives=3; t=0; onExcel=false;
+  $('hearts').textContent='❤️❤️❤️';
+  monitor.classList.remove('excel'); toggleBtn.classList.remove('toGame');
+  toggleBtn.textContent='🛡️ 切到 Excel'; $('status').textContent='🎮 偷玩中'; $('status').classList.remove('safe');
+  resetBoss(3);
+  document.querySelectorAll('.ov').forEach(o=>o.classList.remove('show'));
+  running=true; paused=false; document.body.classList.remove('paused');
+}
+
+$('startBtn').onclick=start;
+$('againBtn').onclick=start;
+$('sorryBtn').onclick=()=>{
+  audio();
+  $('ovCaught').classList.remove('show');
+  resetBoss(2.5);
+  paused=false; document.body.classList.remove('paused');
+};
+toggleBtn.addEventListener('click',()=>{audio();toggle();});
+monitor.addEventListener('click',()=>{audio();toggle();});
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'){ e.preventDefault(); if(running&&!paused) toggle(); }
+});
+</script>
+</body>
+</html>
