@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>GTA 日請假大作戰</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 html,body{height:100%;background:#2b2140;font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;color:#222;overflow:hidden}
@@ -108,6 +109,20 @@ html,body{height:100%;background:#2b2140;font-family:"PingFang TC","Noto Sans TC
 .rules{text-align:left;font-size:14px;background:#f4eefc;border-radius:12px;padding:10px 12px;margin:10px 0;line-height:1.7}
 .big{font-size:40px;font-weight:900;color:#ff5c7a}
 .rank{font-size:18px;font-weight:900;color:#3d2f5a}
+#ovStart{background:#2b2140;flex-direction:column;padding:12px 14px calc(14px + env(safe-area-inset-bottom))}
+.titleWrap{width:min(100%,calc((100dvh - 180px)*0.8));display:flex;flex-direction:column;gap:10px}
+.cover{position:relative;width:100%;container-type:inline-size;border-radius:14px;overflow:hidden;box-shadow:0 8px 0 rgba(0,0,0,.35);border:4px solid #ffd84d}
+.cover img{display:block;width:100%;height:auto}
+.cover .ledDig,.cover .ledLab{position:absolute;left:3.9%;width:21.9%;background:#0b0b0b;display:flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:2px}
+.cover .ledDig{top:44.6%;height:4.6%;font-family:"VT323","Courier New",monospace;font-size:3.6cqw;overflow:hidden;color:#ff3434;text-shadow:0 0 .6cqw #ff0000,0 0 1.2cqw #ff2a2a;letter-spacing:.1cqw}
+.cover .ledLab{top:41.7%;height:3.1%;font-size:1.9cqw;font-weight:900;color:#ffd84d;display:none}
+.cover.released .ledLab{display:flex}
+#startBtn{display:block;width:100%;margin-top:0;font-size:22px;padding:16px;font-weight:900;border:none;border-radius:14px;background:#ff5c7a;color:#fff;box-shadow:0 5px 0 #c23a55;cursor:pointer;font-family:inherit;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.03)}}
+.btn2{width:100%;padding:10px;font-size:15px;font-weight:800;border:3px solid #cbbbe8;border-radius:12px;background:transparent;color:#fff;cursor:pointer;font-family:inherit}
+.howPanel{position:absolute;inset:0;background:rgba(30,20,50,.85);display:none;align-items:center;justify-content:center;padding:20px;z-index:2}
+.howPanel.show{display:flex}
+#ovOver{background:linear-gradient(rgba(30,20,50,.82),rgba(30,20,50,.9)),url(cover.jpg) center/cover}
 body.paused .city,body.paused .city2,body.paused .road:after,body.paused .car{animation-play-state:paused}
 .shake{animation:shake .4s}
 @keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
@@ -172,17 +187,29 @@ body.paused .city,body.paused .city2,body.paused .road:after,body.paused .car{an
 
   <!-- Start -->
   <div class="ov show" id="ovStart">
-    <div class="card">
-      <h1>GTA 日<br><span>請假大作戰</span></h1>
-      <p>11/19 GTA VI 發售，你的假卻被老闆打槍了…<br>沒關係，<b>上班偷玩</b>就好！</p>
-      <div class="cd"><div class="lab" id="cdLab1">⏳ GTA VI 上市倒數</div><div class="units"><div class="u"><b id="cdD1">00</b><small id="cdDL1">天</small></div><div class="u"><b id="cdH1">00</b><small>時</small></div><div class="u"><b id="cdM1">00</b><small>分</small></div><div class="u"><b id="cdS1">00</b><small>秒</small></div></div></div>
-      <div class="rules">
-        🎮 畫面在遊戲上就會累積分數<br>
-        👂 聽到腳步聲、門上出現影子 → 快切 Excel！<br>
-        😏 老闆有時會<b>假走過</b>騙你<br>
-        💥 被抓 3 次就 Game Over
+    <div class="titleWrap">
+      <div class="cover" id="cover">
+        <img src="cover.jpg" alt="GTA 日請假大作戰">
+        <div class="ledLab blink">🎉 已上市！</div>
+        <div class="ledDig" id="coverDig">--天 --:--:--</div>
       </div>
       <button class="btn" id="startBtn">開始上班 💼</button>
+      <button class="btn2" id="howBtn">📖 玩法</button>
+    </div>
+    <div class="howPanel" id="howPanel">
+      <div class="card">
+        <h1>📖 玩法</h1>
+        <p>11/19 GTA VI 發售，你的假卻被老闆打槍了…<br>沒關係，<b>上班偷玩</b>就好！</p>
+        <div class="rules">
+          🎮 畫面在遊戲上就會累積分數<br>
+          👂 聽到腳步聲、門上出現影子 → 快切 Excel！<br>
+          😏 老闆有時會<b>假走過</b>騙你<br>
+          ⏱️ 最後一刻才切換，有「好險！」加分<br>
+          💥 被抓 3 次就 Game Over<br>
+          ⌨️ 電腦按空白鍵、手機點按鈕切換
+        </div>
+        <button class="btn" id="howClose">知道了，開始摸魚 👍</button>
+      </div>
     </div>
   </div>
 
@@ -287,7 +314,10 @@ function tickCountdown(){
     lab.textContent='🎉 GTA VI 已上市！'; lab.classList.add('blink');
     dig.textContent=`已上市 ${c.d}天 ${pad(c.h)}:${pad(c.m)}:${pad(c.s)}`;
   }
-  [1,2].forEach(i=>{
+  $('cover').classList.toggle('released',!c.pre);
+  $('coverDig').textContent = c.pre? `${pad(c.d)}天 ${pad(c.h)}:${pad(c.m)}:${pad(c.s)}` : `已上市${c.d}天 ${pad(c.h)}:${pad(c.m)}`;
+  fitLed();
+  [2].forEach(i=>{
     const l=$('cdLab'+i);
     l.textContent = c.pre? '⏳ GTA VI 上市倒數' : '🎉 GTA VI 已上市！已經過了';
     l.classList.toggle('blink',!c.pre);
@@ -295,6 +325,13 @@ function tickCountdown(){
     $('cdM'+i).textContent=pad(c.m); $('cdS'+i).textContent=pad(c.s);
   });
 }
+let ledLen=-1;
+function fitLed(){
+  const el=$('coverDig'); if(el.textContent.length===ledLen) return; ledLen=el.textContent.length;
+  let f=3.6; el.style.fontSize=f+'cqw';
+  while(el.scrollWidth>el.clientWidth && f>1.5){ f-=0.1; el.style.fontSize=f+'cqw'; }
+}
+document.fonts && document.fonts.ready.then(()=>{ledLen=-1;fitLed();});
 tickCountdown(); setInterval(tickCountdown,250);
 function sourLine(){
   const c=cdParts();
@@ -450,6 +487,8 @@ function start(){
 }
 
 $('startBtn').onclick=start;
+$('howBtn').onclick=()=>$('howPanel').classList.add('show');
+$('howClose').onclick=()=>{$('howPanel').classList.remove('show');start();};
 $('againBtn').onclick=start;
 $('sorryBtn').onclick=()=>{
   audio();
